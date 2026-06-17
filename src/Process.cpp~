@@ -1,0 +1,308 @@
+#include "Constants.h"
+#include "Process.h"
+#include "config.h"
+#include "TVectorD.h"
+#include <ranges>
+
+Process::Process(){
+  printf("Process Called\n");
+
+  m_file = std::make_unique<TFile>(
+				   Config::RootOutputFile,
+				   "RECREATE"
+				   );
+
+  m_file->mkdir("Calibration");
+  m_file->mkdir("Data");
+
+  m_file->cd();
+
+  m_tree = new TTree(
+		     "Spectra",
+		     "Spectra"
+		     );
+
+  m_tree->Branch("RunID",&m_runID);
+  m_tree->Branch("NBkg",&m_nBkg);
+  m_tree->Branch("NormFactor",&m_normFactor);
+
+  m_tree->Branch("Signal",&m_treeSignal);
+  m_tree->Branch("Bkg1",&m_treeBkg1);
+  m_tree->Branch("Bkg2",&m_treeBkg2);
+}
+
+Process::~Process(){
+  if(m_file){
+    m_file->Write();
+    m_file->Close();
+  }
+
+  printf("Process Over\n");
+}
+
+void Process::ReadCalibration(){
+  std::ifstream file(Config::CalibrationFile);
+
+  if(!file.is_open()){
+    std::cerr
+      << "Cannot open "
+      << Config::CalibrationFile
+      << std::endl;
+    return;
+  }
+
+  double wl;
+  double calib;
+
+  while(file >> wl >> calib){
+    m_wl.push_back(wl);
+    m_en.push_back((h*c)/(wl*e*1.0e-9));
+    m_calib.push_back(calib);
+  }
+
+  BookPlots(1);
+
+  m_file->cd("Calibration");
+
+  TVectorD wlAxis(m_wl.size());
+  TVectorD calibVec(m_calib.size());
+
+  for(size_t i=0;i<m_wl.size();i++){
+    wlAxis[i] = m_wl[i];
+    calibVec[i] = m_calib[i];
+  }
+
+  wlAxis.Write("WavelengthAxis");
+  calibVec.Write("CalibrationCurve");
+}
+
+void Process::BookPlots(int index){
+  if(index == 1){
+    m_file->cd("Calibration");
+
+    m_gr_calib_Wl = std::make_unique<TGraph>();
+
+    int i = 0;
+
+    for(auto [c,w] : std::views::zip(m_calib,m_wl)){
+      m_gr_calib_Wl->SetPoint(i,w,c);
+      i++;
+    }
+
+    m_gr_calib_Wl->SetName("WaveLength");
+    m_gr_calib_Wl->SetTitle("WaveLength");
+    m_gr_calib_Wl->Write();
+
+    m_gr_calib_En = std::make_unique<TGraph>();
+
+    i = 0;
+
+    for(auto [c,e] : std::views::zip(m_calib,m_en)){
+      m_gr_calib_En->SetPoint(i,e,c);
+      i++;
+    }
+
+    m_gr_calib_En->SetName("Energy");
+    m_gr_calib_En->SetTitle("Energy");
+    m_gr_calib_En->Write();
+  }
+
+  if(index == 2){
+    m_file->cd("Data");
+
+    m_gr_data_Wl = std::make_unique<TGraph>();
+
+    int i = 0;
+
+    for(auto [c,w] : std::views::zip(m_dataReadings,m_dataWL)){
+      m_gr_data_Wl->SetPoint(i,w,c);
+      i++;
+    }
+
+    TString name;
+    name.Form("WaveLength_%03d",m_graphCounter++);
+
+    m_gr_data_Wl->SetName(name);
+    m_gr_data_Wl->SetTitle(name);
+
+    m_gr_data_Wl->Write();
+  }
+}
+
+void Process::ReadData(){
+  namespace fs = std::filesystem;
+
+  fs::path baseFolder = Config::BaseFolder;
+  fs::path anaFolder = baseFolder/Config::AnaDirectory;
+
+  std::vector<fs::path> txtFiles;
+
+  int nRuns = 0;
+
+  if(!fs::exists(anaFolder)){
+    std::cerr << "Directory does not exist\n";
+    return;
+  }
+
+  for(const auto& runDir : fs::directory_iterator(anaFolder)){
+    if(!runDir.is_directory())
+      continue;
+
+    ++nRuns;
+
+    fs::path dataDir = runDir.path()/"Data";
+
+    if(!fs::exists(dataDir))
+      continue;
+
+    for(const auto& file : fs::directory_iterator(dataDir)){
+      if(!file.is_regular_file())
+        continue;
+
+      if(file.path().extension() != ".txt")
+        continue;
+
+      txtFiles.push_back(file.path());
+    }
+  }
+
+  printf("-->%d\n",nRuns);
+
+  for(const auto& txtFile : txtFiles){
+    std::ifstream input(txtFile);
+
+    if(!input.is_open())
+      continue;
+
+    m_dataWL.clear();
+    m_dataReadings.clear();
+
+    m_treeSignal.clear();
+    m_treeBkg1.clear();
+    m_treeBkg2.clear();
+
+    double wl;
+    double val;
+
+    while(input >> wl >> val){
+      m_dataWL.push_back(wl);
+      m_dataReadings.push_back(val);
+    }
+
+    input.close();
+
+    m_treeSignal = m_dataReadings;
+
+    std::string runName =
+      txtFile.parent_path()
+      .parent_path()
+      .filename()
+      .string();
+
+    auto it = m_backgrounds.find(runName);
+
+    if(it != m_backgrounds.end()){
+      m_nBkg = it->second.nFiles;
+
+      m_treeBkg1 = it->second.bg1;
+
+      if(m_nBkg > 1)
+        m_treeBkg2 = it->second.bg2;
+    }else{
+      m_nBkg = 0;
+    }
+
+    m_runID++;
+
+    m_tree->Fill();
+
+    BookPlots(2);
+  }
+}
+
+void Process::ReadBkg(){
+  namespace fs = std::filesystem;
+
+  fs::path anaFolder =
+    fs::path(Config::BaseFolder)/
+    Config::AnaDirectory;
+
+  if(!fs::exists(anaFolder)){
+    std::cerr << "Directory does not exist\n";
+    return;
+  }
+
+  auto ReadFile = [](const fs::path& file,std::vector<double>& wl,std::vector<double>& val){
+    std::ifstream input(file);
+
+    if(!input.is_open())
+      return;
+
+    double x,y;
+
+    while(input >> x >> y){
+      wl.push_back(x);
+      val.push_back(y);
+    }
+  };
+
+  m_backgrounds.clear();
+
+  for(const auto& runDir : fs::directory_iterator(anaFolder)){
+    if(!runDir.is_directory())
+      continue;
+
+    std::string runName =
+      runDir.path().filename().string();
+
+    fs::path bgDir =
+      runDir.path()/"DataBg";
+
+    if(!fs::exists(bgDir))
+      continue;
+
+    std::vector<fs::path> files;
+
+    for(const auto& file : fs::directory_iterator(bgDir)){
+      if(!file.is_regular_file())
+        continue;
+
+      if(file.path().extension() != ".txt")
+        continue;
+
+      files.push_back(file.path());
+    }
+
+    if(files.empty())
+      continue;
+
+    std::sort(files.begin(),files.end());
+
+    BackgroundData bg;
+
+    bg.nFiles = std::min((int)files.size(),2);
+
+    ReadFile(files[0],bg.wl,bg.bg1);
+
+    if(files.size() > 1){
+      std::vector<double> wl2;
+
+      ReadFile(files[1],wl2,bg.bg2);
+
+      if(wl2.size() != bg.wl.size()){
+        std::cerr
+          << runName
+          << ": background sizes differ\n";
+        continue;
+      }
+    }
+
+    m_backgrounds[runName] = std::move(bg);
+
+    std::cout
+      << runName
+      << " : "
+      << bg.nFiles
+      << " background file(s) loaded\n";
+  }
+}

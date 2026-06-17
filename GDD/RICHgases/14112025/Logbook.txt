@@ -1,0 +1,29 @@
+500V (1cm) X-ray 20kV, 5mA -> 15 nA CF4
+linear increase 40 mA 119 mA.
+primary scintillation study
+40 kV, 40 mA (max of X-ray) 313 microA
+30 sec integration time spectra
+CF4 1 bar, 40kV, 40mA, 30 sec. 
+10 spectra + 10 bkg spectra 
+used old calibration file
+
+C2F6-500V
+C2F6, 1bar, 40kV, 40mA, 30s
+Anode current: 159 nA
+
+C2F6-1300V 1 bar
+V increased from 500V to 1300 V (plateau) 
+Anode current: 214 nA
+
+C2F6 500 mbar
+V=800V (plateau checked)
+Anode current: 131 nA
+30 sec, 40kV, 40mA
+10 spectra
+
+C2F6 1.5 bar
+V=1700V
+Anode current: 168 nA
+ 
+
+

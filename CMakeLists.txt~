@@ -1,0 +1,96 @@
+cmake_minimum_required(VERSION 3.10)
+
+project(C2F6_Transparency LANGUAGES CXX)
+
+# ============================================================
+# C++ Standard
+# ============================================================
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# ============================================================
+# ROOT
+# ============================================================
+
+find_package(ROOT REQUIRED)
+include(${ROOT_USE_FILE})
+
+# ============================================================
+# User Settings
+# ============================================================
+
+include(${CMAKE_SOURCE_DIR}/Settings.cmake)
+
+# ============================================================
+# Generate config.h
+# ============================================================
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/config.h.in
+    ${CMAKE_BINARY_DIR}/generated/config.h
+    @ONLY
+)
+
+# ============================================================
+# Source Files
+# ============================================================
+
+file(GLOB SOURCES
+    "${PROJECT_SOURCE_DIR}/src/*.cpp"
+)
+
+# ============================================================
+# Executable
+# ============================================================
+
+add_executable(C2F6_Transparency
+    ${SOURCES}
+)
+
+# ============================================================
+# Include Directories
+# ============================================================
+
+target_include_directories(C2F6_Transparency
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/include
+        ${CMAKE_BINARY_DIR}/generated
+)
+
+# ROOT headers as system headers
+target_include_directories(C2F6_Transparency
+    SYSTEM PRIVATE
+        ${ROOT_INCLUDE_DIRS}
+)
+
+# ============================================================
+# Compiler Options
+# ============================================================
+
+# Suppress ROOT's C++ standard mismatch warning
+target_compile_options(C2F6_Transparency
+    PRIVATE
+        -Wno-cpp
+)
+
+# ============================================================
+# Link ROOT
+# ============================================================
+
+target_link_libraries(C2F6_Transparency
+    PRIVATE
+        ${ROOT_LIBRARIES}
+)
+
+# ============================================================
+# Configuration Summary
+# ============================================================
+
+message(STATUS "======================================")
+message(STATUS "Calibration File : ${CALIBRATION_FILE}")
+message(STATUS "ROOT Output File : ${ROOT_OUTPUT_FILE}")
+message(STATUS "Data Directory   : ${BASE_DATA_DIRECTORY}")
+message(STATUS "Cutoff WL [nm]   : ${CUTOFF_WAVELENGTH}")
+message(STATUS "======================================")

@@ -1,0 +1,9 @@
+@echo off
+
+set /a max=2
+
+for /l%%i in (1,1%max%) do(
+	mkdir Run%%i
+	mkdir Run%%i\Data
+	mkdir Run%%i\DataBG
+)

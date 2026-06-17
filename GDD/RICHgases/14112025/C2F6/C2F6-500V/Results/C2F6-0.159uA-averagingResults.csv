@@ -1,0 +1,2 @@
+bgAveragedFiles,averagedFiles,selectionMaskStartIndex,selectionMaskEndIndex,selectionMaskMeanCutLower,selectionMaskMeanCutUpper,numberWavelengths,numberFiles,numberFilesBG
+10,15,1150,1300,-1e+06,8.5e+08,2048,-1,-1
