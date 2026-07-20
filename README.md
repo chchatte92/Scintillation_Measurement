@@ -1,7 +1,8 @@
 # Scintillation_Measurement
 - git-clone:
+  ```
   - git clone git@github.com:chchatte92/Scintillation_Measurement.git
-
+  ```
 - build:
   ```
   - cd Scintillation_Measurement
