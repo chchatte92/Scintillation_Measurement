@@ -6,7 +6,14 @@
 - build:
   ```
   - cd Scintillation_Measurement
+  - mkdir -p Output
   - cmake -B ./build -S . -Wno-dev
   - cmake --build ./build -j4
-  - ./build/C2F6_Transparency
   ```
+If builds succesfully, run the executable:
+```
+./build/C2F6_Transparency
+```
+The excutable:
+-> Should Generate a root output ('C2F6Transparency.root') inside the Output directory.
+Settings.cmake file can be handled to change configurations. 
