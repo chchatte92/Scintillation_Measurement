@@ -16,11 +16,14 @@ namespace Config
 
   inline constexpr const char* BaseFolder =
     "@BASE_DATA_DIRECTORY@";
-
+  
+  inline constexpr const int BookStatus =
+    @BOOK_STATUS@;
   // Some Analysis Variables No Need to Change
-  inline constexpr double CutoffWavelength =
-    @CUTOFF_WAVELENGTH@;
-
+  inline constexpr double CutoffWavelengths[2] ={
+    @CUTOFF_WAVELENGTHS_MIN@,
+    @CUTOFF_WAVELENGTHS_MAX@
+  };
   inline constexpr int NBkgFiles =
     @N_BKGFILES@;
 

@@ -6,15 +6,15 @@
 
 Process::Process(){
   printf("Process Called\n");
-
+  
   m_file = std::make_unique<TFile>(
 				   Config::RootOutputFile,
 				   "RECREATE"
 				   );
-
-  m_file->mkdir("Calibration");
-  m_file->mkdir("Data");
-
+  if(Config::BookStatus!=0){
+    m_file->mkdir("Calibration");
+    m_file->mkdir("Data");
+  }
   m_file->cd();
 
   m_tree = new TTree(
@@ -29,6 +29,16 @@ Process::Process(){
   m_tree->Branch("Signal",&m_treeSignal);
   m_tree->Branch("Bkg1",&m_treeBkg1);
   m_tree->Branch("Bkg2",&m_treeBkg2);
+
+  ///Calibration
+  m_tree2 = new TTree(
+		     "Calib",
+		     "Calib"
+		     );
+
+  m_tree2->Branch("CalibWL",&m_wl);
+  m_tree2->Branch("Calib",&m_calib);
+  
 }
 
 Process::~Process(){
@@ -75,7 +85,8 @@ void Process::ReadCalibration(){
     m_en.push_back((h*c)/(wl*e*1.0e-9));
     m_calib.push_back(calib);
   }
-
+  m_tree2->Fill();
+  //m_tree2->Write();
   BookPlots(1);
 
   m_file->cd("Calibration");
@@ -88,12 +99,19 @@ void Process::ReadCalibration(){
     calibVec[i] = m_calib[i];
   }
 
-  wlAxis.Write("WavelengthAxis");
-  calibVec.Write("CalibrationCurve");
+  //wlAxis.Write("WavelengthAxis");
+  //calibVec.Write("CalibrationCurve");
 }
 
 void Process::BookPlots(int index){
-  if(index == 1){
+  if(Config::BookStatus == 0){
+    static bool printed =false;
+    if(!printed){
+      printf("\033[31mNo Booking requested\033[0m\n");
+      printed =true;
+    }
+  }
+  if(index == 1 && Config::BookStatus!=0){
     m_file->cd("Calibration");
 
     m_gr_calib_Wl = std::make_unique<TGraph>();
@@ -123,7 +141,7 @@ void Process::BookPlots(int index){
     m_gr_calib_En->Write();
   }
 
-  if(index == 2){
+  if(index == 2 && Config::BookStatus!=0){
     m_file->cd("Data");
 
     m_gr_data_Wl = std::make_unique<TGraph>();
@@ -201,6 +219,7 @@ void Process::ReadData(){
     double val;
 
     while(input >> wl >> val){
+      if(wl<GetLWL() || wl>GetUWL()) continue;
       m_dataWL.push_back(wl);
       m_dataReadings.push_back(val);
     }
@@ -319,6 +338,6 @@ void Process::ReadBkg(){
       << runName
       << " : "
       << bg.nFiles
-      << " background file(s) loaded\n"<<std::endl;
+      << " background file(s) loaded"<<std::endl;
   }
 }

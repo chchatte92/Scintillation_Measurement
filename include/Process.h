@@ -26,12 +26,12 @@ class Process: public CutOffs{
  public:
   Process();
   ~Process();
-  void SetFolder(const char* base ){m_baseFolder = base;};
-  void SetOutName(const char* out){m_resultsName = out;};
-  void SetNFiles(int nF) {m_nFiles =nF;};
-  void SetMaxFiles(int maxF){m_maxFiles= maxF;};
-  void SetComputeError(bool cError){m_computeError = cError;};
-  void SetCalibConstant(double calibConst){m_calibConstant = calibConst;};
+  //void SetFolder(const char* base ){m_baseFolder = base;};
+  //void SetOutName(const char* out){m_resultsName = out;};
+  //void SetNFiles(int nF) {m_nFiles =nF;};
+  //void SetMaxFiles(int maxF){m_maxFiles= maxF;};
+  //void SetComputeError(bool cError){m_computeError = cError;};
+  //void SetCalibConstant(double calibConst){m_calibConstant = calibConst;};
   void DataProcess();
   void ReadNormalization();
   void ReadCalibration();
@@ -56,6 +56,7 @@ class Process: public CutOffs{
   std::vector<double> m_bgReadings;
   std::unique_ptr<TFile> m_file;
   TTree *m_tree = nullptr;
+  TTree *m_tree2 = nullptr;
   std::unique_ptr<TGraph> m_gr_calib_Wl;
   std::unique_ptr<TGraph> m_gr_calib_En;
   std::unique_ptr<TGraph> m_gr_data_Wl;
@@ -65,7 +66,6 @@ class Process: public CutOffs{
   int m_runID;
   int m_nBkg = 0;
   double m_normFactor = 1.0;
-
   std::vector<double> m_treeSignal;
   std::vector<double> m_treeBkg1;
   std::vector<double> m_treeBkg2;
