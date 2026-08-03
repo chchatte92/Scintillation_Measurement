@@ -221,6 +221,8 @@ void Process::ReadData(){
     while(input >> wl >> val){
       if(wl<GetLWL() || wl>GetUWL()) continue;
       m_dataWL.push_back(wl);
+      if(val>m_selectionMaskMeanCutUpper || val<m_selectionMaskMeanCutLower)
+	val= 0;
       m_dataReadings.push_back(val);
     }
 
@@ -267,7 +269,7 @@ void Process::ReadBkg(){
     return;
   }
 
-  auto ReadFile = [](const fs::path& file,std::vector<double>& wl,std::vector<double>& val){
+  auto ReadFile = [this](const fs::path& file,std::vector<double>& wl,std::vector<double>& val){
     std::ifstream input(file);
 
     if(!input.is_open())
@@ -275,7 +277,10 @@ void Process::ReadBkg(){
 
     double x,y;
     while(input >> x >> y){
+      if(x< GetLWL() || x>GetUWL()) continue;
       wl.push_back(x);
+      if(y>m_selectionMaskMeanCutUpper || y<m_selectionMaskMeanCutLower)
+	y =0;
       val.push_back(y);
     }
     
