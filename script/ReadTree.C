@@ -1,9 +1,8 @@
 #include <TFile.h>
 #include <TTree.h>
-
 #include <iostream>
 #include <vector>
-
+#include "../include/Constants.h"
 int main() {
 
   TFile file("../Output/C2F6Transparency.root", "READ");
@@ -55,7 +54,7 @@ int main() {
   Long64_t nEntries = spectra->GetEntries();
 
   for (Long64_t i = 0; i < nEntries; ++i) {
-
+    std::cout<<Constants::h<<std::endl;
     spectra->GetEntry(i);
 
     std::cout << "Run " << runID
@@ -76,6 +75,7 @@ int main() {
 
       std::cout << '\n';
       
+      //Yield 
     }
   }
 
