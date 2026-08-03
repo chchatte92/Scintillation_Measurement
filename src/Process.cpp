@@ -1,6 +1,5 @@
-#include "Constants.h"
 #include "Process.h"
-#include "config.h"
+
 Process::Process(){
   printf("Process Called\n");
   
@@ -103,64 +102,6 @@ void Process::ReadCalibration(){
   //calibVec.Write("CalibrationCurve");
 }
 
-void Process::BookPlots(int index){
-  if(Config::BookStatus == 0){
-    static bool printed =false;
-    if(!printed){
-      printf("\033[31mNo Booking requested\033[0m\n");
-      printed =true;
-    }
-    return; 
-  }
-  if(index == 1 && Config::BookStatus!=0){
-    m_file->cd("Calibration");
-    m_gr_calib_Wl = std::make_unique<TGraph>();
-
-    int i = 0;
-
-    for(auto [c,w] : std::views::zip(m_calib,m_wl)){
-      m_gr_calib_Wl->SetPoint(i,w,c);
-      i++;
-    }
-
-    m_gr_calib_Wl->SetName("WaveLength");
-    m_gr_calib_Wl->SetTitle("WaveLength");
-    m_gr_calib_Wl->Write();
-    m_gr_calib_En = std::make_unique<TGraph>();
-
-    i = 0;
-
-    for(auto [c,e] : std::views::zip(m_calib,m_en)){
-      m_gr_calib_En->SetPoint(i,e,c);
-      i++;
-    }
-
-    m_gr_calib_En->SetName("Energy");
-    m_gr_calib_En->SetTitle("Energy");
-    m_gr_calib_En->Write();
-  }
-
-  if(index == 2 && Config::BookStatus!=0){
-    m_file->cd("Data");
-    m_gr_data_Wl = std::make_unique<TGraph>();
-
-    int i = 0;
-
-    for(auto [c,w] : std::views::zip(m_dataReadings,m_dataWL)){
-      m_gr_data_Wl->SetPoint(i,w,c);
-      i++;
-    }
-
-    TString name;
-    name.Form("WaveLength_%03d",m_graphCounter++);
-
-    m_gr_data_Wl->SetName(name);
-    m_gr_data_Wl->SetTitle(name);
-
-    m_gr_data_Wl->Write();
-  }
-}
-
 void Process::ReadData(){
   namespace fs = std::filesystem;
 
@@ -228,12 +169,14 @@ void Process::ReadData(){
 
     m_treeSignal = m_dataReadings;
 
+    
     std::string runName =
       txtFile.parent_path()
       .parent_path()
       .filename()
       .string();
-
+    //std::cout<<runName<<std::endl;
+    
     auto it = m_backgrounds.find(runName);
 
     if(it != m_backgrounds.end()){
@@ -246,7 +189,7 @@ void Process::ReadData(){
     }else{
       m_nBkg = 0;
     }
-
+    
     m_runID = std::stoi(runName.substr(3));
     auto norm = m_normalization.find(m_runID);
     //std::cout<<"Found Run: "<<norm->first<<std::endl;
@@ -260,6 +203,7 @@ void Process::ReadData(){
         << std::endl;
       m_normFactor = 1.0;
     }
+    
     m_tree->Fill();
     if(Config::BookStatus!=0)
       BookPlots(2);
@@ -353,5 +297,63 @@ void Process::ReadBkg(){
       << " : "
       << bg.nFiles
       << " background file(s) loaded"<<std::endl;
+  }
+}
+
+void Process::BookPlots(int index){
+  if(Config::BookStatus == 0){
+    static bool printed =false;
+    if(!printed){
+      printf("\033[31mNo Booking requested\033[0m\n");
+      printed =true;
+    }
+    return; 
+  }
+  if(index == 1 && Config::BookStatus!=0){
+    m_file->cd("Calibration");
+    m_gr_calib_Wl = std::make_unique<TGraph>();
+
+    int i = 0;
+
+    for(auto [c,w] : std::views::zip(m_calib,m_wl)){
+      m_gr_calib_Wl->SetPoint(i,w,c);
+      i++;
+    }
+
+    m_gr_calib_Wl->SetName("WaveLength");
+    m_gr_calib_Wl->SetTitle("WaveLength");
+    m_gr_calib_Wl->Write();
+    m_gr_calib_En = std::make_unique<TGraph>();
+
+    i = 0;
+
+    for(auto [c,e] : std::views::zip(m_calib,m_en)){
+      m_gr_calib_En->SetPoint(i,e,c);
+      i++;
+    }
+
+    m_gr_calib_En->SetName("Energy");
+    m_gr_calib_En->SetTitle("Energy");
+    m_gr_calib_En->Write();
+  }
+
+  if(index == 2 && Config::BookStatus!=0){
+    m_file->cd("Data");
+    m_gr_data_Wl = std::make_unique<TGraph>();
+
+    int i = 0;
+
+    for(auto [c,w] : std::views::zip(m_dataReadings,m_dataWL)){
+      m_gr_data_Wl->SetPoint(i,w,c);
+      i++;
+    }
+
+    TString name;
+    name.Form("WaveLength_%03d",m_graphCounter++);
+
+    m_gr_data_Wl->SetName(name);
+    m_gr_data_Wl->SetTitle(name);
+
+    m_gr_data_Wl->Write();
   }
 }

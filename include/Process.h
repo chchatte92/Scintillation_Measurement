@@ -17,7 +17,11 @@
 #include "TFile.h"
 #include "TTree.h"
 
+#include "Constants.h"
 #include "CutOffs.h"
+#include "config.h"
+
+using namespace Constants;
 
 struct BackgroundData{
   int nFiles = 0;
@@ -71,7 +75,8 @@ class Process: public CutOffs{
   std::vector<double> m_treeSignal;
   std::vector<double> m_treeBkg1;
   std::vector<double> m_treeBkg2;
-
+  std::vector<double> m_lightYield;
+  
   //smart Pointers to trees and graphs and TFiles
   std::unique_ptr<TFile> m_file;
   std::unique_ptr<TGraph> m_gr_calib_Wl;
