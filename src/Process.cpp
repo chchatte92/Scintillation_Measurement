@@ -38,7 +38,7 @@ Process::Process(){
 
   m_tree2->Branch("CalibWL",&m_wl);
   m_tree2->Branch("Calib",&m_calib);
-  
+  ReadNormalization();
 }
 
 Process::~Process(){
@@ -62,8 +62,10 @@ void Process::ReadNormalization(){
   std::string RunID;
   double norm;
   while(file>>RunID>>norm){
-    printf("%s %lf\n",RunID.c_str(),norm);
+    int run =std::stoi(RunID.substr(3));
+    m_normalization[run] = norm;
   }
+  file.close();
 }
 
 void Process::ReadCalibration(){
@@ -87,10 +89,10 @@ void Process::ReadCalibration(){
   }
   m_tree2->Fill();
   //m_tree2->Write();
-  BookPlots(1);
-
-  m_file->cd("Calibration");
-
+  if(Config::BookStatus!=0){
+    BookPlots(1);
+    m_file->cd("Calibration");
+  }
   TVectorD wlAxis(m_wl.size());
   TVectorD calibVec(m_calib.size());
 
@@ -110,6 +112,7 @@ void Process::BookPlots(int index){
       printf("\033[31mNo Booking requested\033[0m\n");
       printed =true;
     }
+    return; 
   }
   if(index == 1 && Config::BookStatus!=0){
     m_file->cd("Calibration");
@@ -250,11 +253,22 @@ void Process::ReadData(){
     }
 
     m_runID = std::stoi(runName.substr(3));
-
+    auto norm = m_normalization.find(m_runID);
+    //std::cout<<"Found Run: "<<norm->first<<std::endl;
+    if(norm != m_normalization.end()){
+      m_normFactor = norm->second;
+    }
+    else{
+      std::cerr 
+        << "No normalization found for Run "
+        << m_runID
+        << std::endl;
+      m_normFactor = 1.0;
+    }
     m_tree->Fill();
-
-    BookPlots(2);
-  }
+    if(Config::BookStatus!=0)
+      BookPlots(2);
+  }//Files
 }
 
 void Process::ReadBkg(){

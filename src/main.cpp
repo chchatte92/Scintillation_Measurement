@@ -5,7 +5,7 @@ int main(){
   Process p;
   //p.SetFolder("char");
   //p.SetCalibConstant(5.02);
-  p.ReadNormalization();
+  //p.ReadNormalization();
   p.ReadCalibration();
   p.ReadBkg();
   p.ReadData();

@@ -62,7 +62,7 @@ class Process: public CutOffs{
   std::unique_ptr<TGraph> m_gr_data_Wl;
   int m_graphCounter = 0;
   std::map<std::string,BackgroundData> m_backgrounds;
-
+  std::map <int,double> m_normalization;
   int m_runID;
   int m_nBkg = 0;
   double m_normFactor = 1.0;
