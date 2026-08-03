@@ -1,9 +1,6 @@
 #include "Constants.h"
 #include "Process.h"
 #include "config.h"
-#include "TVectorD.h"
-#include <ranges>
-
 Process::Process(){
   printf("Process Called\n");
   
@@ -16,12 +13,11 @@ Process::Process(){
     m_file->mkdir("Data");
   }
   m_file->cd();
-
-  m_tree = new TTree(
+  m_tree =std::make_unique<TTree>(
 		     "Spectra",
 		     "Spectra"
 		     );
-
+  m_tree->SetDirectory(nullptr);
   m_tree->Branch("RunID",&m_runID);
   m_tree->Branch("NBkg",&m_nBkg);
   m_tree->Branch("NormFactor",&m_normFactor);
@@ -31,11 +27,11 @@ Process::Process(){
   m_tree->Branch("Bkg2",&m_treeBkg2);
 
   ///Calibration
-  m_tree2 = new TTree(
+  m_tree2 = std::make_unique<TTree>(
 		     "Calib",
 		     "Calib"
 		     );
-
+  m_tree2->SetDirectory(nullptr);
   m_tree2->Branch("CalibWL",&m_wl);
   m_tree2->Branch("Calib",&m_calib);
   ReadNormalization();
@@ -43,10 +39,12 @@ Process::Process(){
 
 Process::~Process(){
   if(m_file){
+    m_file->cd();
+    m_tree->Write();
+    m_tree2->Write();
     m_file->Write();
-    m_file->Close();
+    
   }
-
   printf("Process Over\n");
 }
 
@@ -116,7 +114,6 @@ void Process::BookPlots(int index){
   }
   if(index == 1 && Config::BookStatus!=0){
     m_file->cd("Calibration");
-
     m_gr_calib_Wl = std::make_unique<TGraph>();
 
     int i = 0;
@@ -129,7 +126,6 @@ void Process::BookPlots(int index){
     m_gr_calib_Wl->SetName("WaveLength");
     m_gr_calib_Wl->SetTitle("WaveLength");
     m_gr_calib_Wl->Write();
-
     m_gr_calib_En = std::make_unique<TGraph>();
 
     i = 0;
@@ -146,7 +142,6 @@ void Process::BookPlots(int index){
 
   if(index == 2 && Config::BookStatus!=0){
     m_file->cd("Data");
-
     m_gr_data_Wl = std::make_unique<TGraph>();
 
     int i = 0;

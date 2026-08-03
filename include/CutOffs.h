@@ -1,5 +1,4 @@
-#ifndef CUTOFFS_H
-#define CUTOFF_H
+#pragma once
 #include "config.h"
 class CutOffs{
  public:
@@ -13,4 +12,3 @@ class CutOffs{
   double m_selectionMaskMeanCutUpper = 8.5e8;
 
 };
-#endif
