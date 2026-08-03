@@ -35,19 +35,19 @@ The `Process` class handles the complete pipeline for scintillation measurement 
 ### Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────┐
 │         ROOT Output File (TFile)                     │
-├─────────────────────────────────────────────────────┤
-│ ├── Calibration/                                    │
-│ │   ├── WaveLength (TGraph)                         │
-│ │   └── Energy (TGraph)                             │
-│ ├── Data/                                           │
+├──────────────────────────────────────────────────────┤
+│ ├── Calibration/                                     │
+│ │   ├── WaveLength (TGraph)                          │
+│ │   └── Energy (TGraph)                              │
+│ ├── Data/                                            │
 │ │   └── WaveLength_000, WaveLength_001, ... (TGraphs)│
-│ ├── Spectra (TTree)                                 │
-│ │   └── Branches: RunID, NBkg, NormFactor, etc.     │
-│ └── Calib (TTree)                                   │
-│     └── Branches: CalibWL, Calib                    │
-└─────────────────────────────────────────────────────┘
+│ ├── Spectra (TTree)                                  │
+│ │   └── Branches: RunID, NBkg, NormFactor, etc.      │
+│ └── Calib (TTree)                                    │
+│     └── Branches: CalibWL, Calib                     │
+└──────────────────────────────────────────────────────┘
 ```
 
 ### Detailed Method Analysis
