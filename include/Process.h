@@ -46,6 +46,7 @@ class Process: public CutOffs{
   void BookPlots(int);
   void ReadData();
   void ReadBkg();
+  bool ReadXYLine(const std::string, double&, double&);
  private:
   //ordinary varaibles 
   int m_nFiles;

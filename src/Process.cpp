@@ -156,9 +156,14 @@ void Process::ReadData(){
 
     double wl;
     double val;
+    std::string line;
+    //while(input >> wl >> val){
+    while(std::getline(input, line)){
+      if(!ReadXYLine(line, wl, val))
+	continue;
+      if(wl<GetLWL() || wl>GetUWL())
+	continue;
 
-    while(input >> wl >> val){
-      if(wl<GetLWL() || wl>GetUWL()) continue;
       m_dataWL.push_back(wl);
       if(val>m_selectionMaskMeanCutUpper || val<m_selectionMaskMeanCutLower)
 	val= 0;
@@ -229,8 +234,13 @@ void Process::ReadBkg(){
       return;
 
     double x,y;
-    while(input >> x >> y){
-      if(x< GetLWL() || x>GetUWL()) continue;
+    std::string line;
+
+    while(std::getline(input,line)){
+      if(!ReadXYLine(line,x,y))
+	continue;
+      if(x< GetLWL() || x>GetUWL())
+	continue;
       wl.push_back(x);
       if(y>m_selectionMaskMeanCutUpper || y<m_selectionMaskMeanCutLower)
 	y =0;
@@ -356,4 +366,14 @@ void Process::BookPlots(int index){
 
     m_gr_data_Wl->Write();
   }
+}
+
+bool Process::ReadXYLine(const std::string line, double& x, double& y)
+{
+    std::stringstream ss(line);
+
+    if(!(ss >> x >> y))
+        return false;
+
+    return true;
 }
